@@ -206,9 +206,53 @@ public class BPlusTree<K extends Comparable<K>, T> {
   *         delete the splitkey later on. -1 otherwise
   */
  public int handleLeafNodeUnderflow(LeafNode<K,T> left, LeafNode<K,T> right,
-   IndexNode<K,T> parent) {
-  return -1;
-
+IndexNode<K,T> parent) {
+	 int splitkey = -1;
+	 int parentpivotindex = 0;
+	 // loop through all parent keys to find the pivotkey for the merge
+	 for (int j = 0; j < parent.keys.size(); j++){
+	 	 boolean leftLessEqualParentkey = left.keys.get(left.keys.size()-1).compareTo(parent.keys.get(j)) == -1 ||
+	 			 						  left.keys.get(left.keys.size()-1).compareTo(parent.keys.get(j)) == 0;
+	 	 boolean rightGreaterParentkey = 
+	 			 right.keys.get(0).compareTo(parent.keys.get(j)) == 1;
+	 	 
+	 	// if j is the index of parent key that separates left and right before merge
+	 	 if (leftLessEqualParentkey && rightGreaterParentkey){ 
+	 		 parentpivotindex= j;
+	 		 break;
+	 	 }
+	 }
+	 // if we can merge left and right
+	 if (left.keys.size() + right.keys.size() <= 2D){ 
+		 // loop through right entries and insert them into left Leaf
+		 for (int i = 0; i < right.keys.size(); i++){
+			 left.insertSorted(right.keys.get(i), right.values.get(i));
+		 }
+		 parent.children.remove(parentpivotindex+1);
+		 splitkey = parentpivotindex;
+		 return splitkey;
+	 }
+	 // we can't merge left and right, have to redistribute
+	 else {
+		 if (left.keys.size() < D){ // move entries from right to left
+			 while (left.keys.size() < D){
+				 left.insertSorted(right.keys.get(0), right.values.get(0));
+				 right.keys.remove(0);
+				 right.values.remove(0);
+			 }
+		 }
+		 else if (right.keys.size() < D){ // move entries from left to right
+			 while(right.keys.size() < D){
+				 right.insertSorted(left.keys.get(left.keys.size()-1), left.values.get(left.values.size()-1));
+				 left.keys.remove(left.keys.size()-1);
+				 left.values.remove(left.values.size()-1);
+			 }
+		 }
+		 parent.keys.remove(parentpivotindex);
+		 parent.keys.add(parentpivotindex, left.keys.get(left.keys.size()-1));
+		 return splitkey;
+		 
+	 }
  }
 
  /**
@@ -225,7 +269,51 @@ public class BPlusTree<K extends Comparable<K>, T> {
   */
  public int handleIndexNodeUnderflow(IndexNode<K,T> leftIndex,
    IndexNode<K,T> rightIndex, IndexNode<K,T> parent) {
-  return -1;
+	 int splitkey = -1;
+	 int parentpivotindex = 0;
+	 // loop through all parent keys to find the pivotkey for the merge
+	 for (int j = 0; j < parent.keys.size(); j++){
+	 	 boolean leftLessEqualParentkey = leftIndex.keys.get(leftIndex.keys.size()-1).compareTo(parent.keys.get(j)) == -1 ||
+	 			 						  leftIndex.keys.get(leftIndex.keys.size()-1).compareTo(parent.keys.get(j)) == 0;
+	 	 boolean rightGreaterParentkey = 
+	 			 rightIndex.keys.get(0).compareTo(parent.keys.get(j)) == 1;
+	 	 
+	 	// if j is the index of parent key that separates left and right before merge
+	 	 if (leftLessEqualParentkey && rightGreaterParentkey){ 
+	 		 parentpivotindex= j;
+	 		 break;
+	 	 }
+	 }
+	 // if we can merge left and right
+	 if (leftIndex.keys.size() + rightIndex.keys.size() <= 2D){ 
+		 // loop through right entries and insert them into left Leaf
+		 for (int i = 0; i < rightIndex.keys.size(); i++){
+			 leftIndex.insertSorted(rightIndex.keys.get(i), rightIndex.children.get(i));
+		 }
+		 parent.children.remove(parentpivotindex+1);
+		 splitkey = parentpivotindex;
+		 return splitkey;
+	 }
+	 // we can't merge left and right, have to redistribute
+	 else {
+		 if (leftIndex.keys.size() < D){ // move entries from right to left
+			 while (leftIndex.keys.size() < D){
+				 leftIndex.insertSorted(rightIndex.keys.get(0), rightIndex.children.get(0));
+				 rightIndex.keys.remove(0);
+				 rightIndex.children.remove(0);
+			 }
+		 }
+		 else if (rightIndex.keys.size() < D){ // move entries from left to right
+			 while(rightIndex.keys.size() < D){
+				 rightIndex.insertSorted(leftIndex.keys.get(leftIndex.keys.size()-1), leftIndex.children.get(leftIndex.children.size()-1));
+				 leftIndex.keys.remove(leftIndex.keys.size()-1);
+				 leftIndex.children.remove(leftIndex.children.size()-1);
+			 }
+		 }
+		 parent.keys.remove(parentpivotindex);
+		 parent.keys.add(parentpivotindex, leftIndex.keys.get(leftIndex.keys.size()-1));
+		 return splitkey; 
+	 }
  }
  
  //Pre: Receives a key
