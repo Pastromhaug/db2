@@ -33,15 +33,21 @@ public class BPlusTree<K extends Comparable<K>, T> {
   */
  public void insert(K key, T value) {
    if (root == null) {
-     LeafNode<K,T> leaf = new LeafNode<K,T>(key, value);
+     LeafNode<K,T> rightLeaf = new LeafNode<K,T>(key, value);
+     LeafNode<K,T> leftLeaf = new LeafNode<K,T> (new ArrayList<K>(), new ArrayList<T>());
      ArrayList<Node<K,T>> leafHolder = new ArrayList<Node<K,T>>();
      ArrayList<K> keyHolder = new ArrayList<K>();
-     leafHolder.add(leaf);
+     leafHolder.add(leftLeaf);
+     leafHolder.add(rightLeaf);
      keyHolder.add(key);
      root = new IndexNode<K,T>(keyHolder, leafHolder);
      return;
    }
    LeafNode<K,T> searchNode = getLeaf(key);
+   if (searchNode.getKeys().size() == 0) {
+	   searchNode.getKeys().add(key);
+	   searchNode.getValues().add(value);
+   }
    searchNode.insertSorted(key, value);
  }
 
@@ -116,21 +122,28 @@ public class BPlusTree<K extends Comparable<K>, T> {
  //Pre: Receives a key
  //Post: Returns the leafnode where that key should be stored.
  public LeafNode<K,T> getLeaf(K key){
+	 boolean foundNext = false;
 	 Node<K,T> searchNode = root;
 	 IndexNode<K,T> index;
 	 ArrayList<Node<K,T>> children;
 	 ArrayList<K> nodeKeys;
 	 //traverse through the tree until it finds a leafNode
 	 while(!searchNode.isLeaf()) {
+		 foundNext = false;
 		 index = (IndexNode<K,T>) searchNode;
 		 nodeKeys = (ArrayList<K>) searchNode.getKeys();
 		 children = index.getChildren();
-		 for (int i = 0; i < nodeKeys.size() + 1; i++) {
+		 for (int i = 0; i < nodeKeys.size(); i++) {
 			 if (nodeKeys.get(i).compareTo(key) > 0) {
 				 searchNode = children.get(i);
+				 foundNext = true;
 				 break;
 			 }
 		}
+		if (!foundNext) {
+			searchNode = children.get(nodeKeys.size());
+		}
+		 
 	}
 	return (LeafNode<K,T>) searchNode;
  }
