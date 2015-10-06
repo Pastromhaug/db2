@@ -5,9 +5,9 @@ public class TestingJared {
   
   
   public static void main(String[] args) { 
-    BPlusTree<Character, String> tree = new BPlusTree<Character, String>();
-    tree.insert('a',"A");
-    System.out.println(Utils.outputTree(tree));
+    String a = "A";
+    String b = "B";
+    System.out.println(a.compareTo(b));
   }
   
   /* ADD YOUR CODE HERE */

@@ -1,4 +1,4 @@
-import java.util.AbstractMap;
+//import java.util.AbstractMap;
 import java.util.Map.Entry;
 import java.util.ArrayList;
 
@@ -20,14 +20,14 @@ public class BPlusTree<K extends Comparable<K>, T> {
   */
  //JARED HERE
  public T search(K key) {
-  Node searchNode = root;
-  IndexNode index;
-  LeafNode leaf;
+  Node<K,T> searchNode = root;
+  IndexNode<K,T> index;
+  LeafNode<K,T> leaf;
   ArrayList<Node<K,T>> children;
   ArrayList<K> nodeKeys;
   //traverse through the tree until it finds a leafNode
   while(!searchNode.isLeaf()) {
-    index = (IndexNode) searchNode;
+    index = (IndexNode<K,T>) searchNode;
     nodeKeys = (ArrayList<K>) searchNode.getKeys();
     children = index.getChildren();
     for (int i = 0; i < nodeKeys.size(); i++) {
@@ -37,7 +37,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
       }
     }
   }
-  leaf = (LeafNode)searchNode;
+  leaf = (LeafNode<K,T>)searchNode;
   return (T) leaf.getValue(key);
  }
 
@@ -48,7 +48,15 @@ public class BPlusTree<K extends Comparable<K>, T> {
   * @param value
   */
  public void insert(K key, T value) {
-
+   if (root == null) {
+     LeafNode<K,T> leaf = new LeafNode<K,T>(key, value);
+     ArrayList<Node<K,T>> leafHolder = new ArrayList<Node<K,T>>();
+     ArrayList<K> keyHolder = new ArrayList<K>();
+     leafHolder.add(leaf);
+     keyHolder.add(key);
+     root = new IndexNode<K,T>(keyHolder, leafHolder);
+   }
+   
  }
 
  /**
