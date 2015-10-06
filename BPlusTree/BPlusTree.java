@@ -43,12 +43,52 @@ public class BPlusTree<K extends Comparable<K>, T> {
      root = new IndexNode<K,T>(keyHolder, leafHolder);
      return;
    }
-   LeafNode<K,T> searchNode = getLeaf(key);
-   if (searchNode.getKeys().size() == 0) {
-	   searchNode.getKeys().add(key);
-	   searchNode.getValues().add(value);
-   }
-   searchNode.insertSorted(key, value);
+   insertbody(key, value, root, null);
+ }
+
+ public void insertbody(K key, T value, Node n, Entry<K, Node<K,T>> newchildentry) {
+ 	if (n.isLeafNode == false) {
+ 		int i;
+ 		for (i = 0; i < n.keys.size(); i++){
+ 			if (nodeKeys.get(i).compareTo(key) > 0) break;
+ 		}
+ 		insertbody(key, value, n.children(i));
+ 		if (newchildentry == null) {
+ 			return;
+ 		}
+ 		else{
+ 			if (n.isOverFlowed == false){
+ 				n.insertSorted(newchildentry, i);
+ 			}
+ 			else {
+ 				newchildentry = splitIndexNode(n);
+ 				if (n == root){
+ 					IndexNode<K,T> newroot = new IndexNode(
+ 							newchildentry.keys, newchildentry.children);
+ 					Entry<K,Node<K,T>> leftentry =
+			    		new AbstractMap.SimpleEntry<K, Node<K,T>>(n.keys, n.children);
+			    	insertSorted(leftentry, 0);
+ 					root = newroot;
+ 				}
+ 				return;
+ 			}
+ 		}
+
+ 	}
+ 	else{ // n is leaf node
+ 		if (n.isOverFlowed == false){
+ 			n.insertSorted(K, T);
+ 			newchildentry = null
+ 			return;
+ 		}
+ 		else{
+ 			newchildentry = splitLeafNode(n);
+ 			LeafNode<K,T> newright = newchildentry.getValue();
+ 			n.nextLeaf = newright;
+ 			newright.previousLeaf = n;
+ 			return;
+ 		}
+ 	}
  }
 
  /**
@@ -58,9 +98,33 @@ public class BPlusTree<K extends Comparable<K>, T> {
   * @param leaf, any other relevant data
   * @return the key/node pair as an Entry
   */
- public Entry<K, Node<K,T>> splitLeafNode(LeafNode<K,T> leaf/*, ...*/) {
-
-  return null;
+ public Entry<K, Node<K,T>> splitLeafNode(LeafNode<K,T> leaf) {
+	 //null check
+	 if (leaf == null) {
+		return null; 
+	 }
+	 //Get split key
+	 int keySize = leaf.keys.size();
+	 K splitKey = leaf.keys.get(keySize/2);
+	 
+	 //Get values to go into right leaf node and create it 
+	 ArrayList<T> rightVals = (ArrayList<T>) leaf.values.subList(keySize/2, keySize);
+	 ArrayList<K> rightKeys = (ArrayList<K>) leaf.keys.subList(keySize/2, keySize);
+	 LeafNode<K,T> rightLeaf = new LeafNode<K,T>(rightKeys, rightVals);
+	 
+	 //remove values from left leaf node
+	 leaf.values = (ArrayList<T>) leaf.values.subList(0, keySize/2);
+	 leaf.keys = (ArrayList<K>) leaf.keys.subList(0, keySize/2);
+	 
+	 //Bring back the order of the leaves
+	 rightLeaf.nextLeaf = leaf.nextLeaf;
+	 rightLeaf.previousLeaf = leaf;
+	 leaf.nextLeaf = rightLeaf;
+	 
+	 //return the new leaf node and the split key
+	 Entry<K,Node<K,T>> entry =
+			    new AbstractMap.SimpleEntry<K, Node<K,T>>(splitKey, rightLeaf);
+	 return entry;
  }
 
  /**
@@ -70,9 +134,33 @@ public class BPlusTree<K extends Comparable<K>, T> {
   * @param index, any other relevant data
   * @return new key/node pair as an Entry
   */
- public Entry<K, Node<K,T>> splitIndexNode(IndexNode<K,T> index/*, ..*/) {
-
-  return null;
+ public Entry<K, Node<K,T>> splitIndexNode(IndexNode<K,T> index) {
+	 //check null case
+	 if (index == null) {
+		 return null;
+	 }
+	 int swapNum = index.keys.size()/2;
+	 
+	 //Get split key
+	 K splitKey = index.keys.get(swapNum);
+	 
+	 //generate keys and children for each side
+	 ArrayList<K> leftKeys = (ArrayList<K>) index.keys.subList(0, swapNum);
+	 ArrayList<K> rightKeys = (ArrayList<K>) index.keys.subList(swapNum+1, index.keys.size());
+	 ArrayList<Node<K,T>> leftChild = (ArrayList<Node<K,T>>) index.children.subList(0, swapNum+1);
+	 ArrayList<Node<K,T>> rightChild = (ArrayList<Node<K,T>>) index.children.subList(swapNum+1, index.children.size());
+	 
+	 //create new index node
+	 IndexNode<K,T> rightIndex = new IndexNode<K,T>(rightKeys, rightChild);
+	 
+	 //switch out original index's keys
+	 index.keys = leftKeys;
+	 index.children = leftChild;
+	 
+	 //Return 
+	 Entry<K,Node<K,T>> entry =
+			    new AbstractMap.SimpleEntry<K, Node<K,T>>(splitKey, rightIndex);
+	 return entry; 
  }
 
  /**
