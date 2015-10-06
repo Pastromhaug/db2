@@ -33,14 +33,15 @@ public class BPlusTree<K extends Comparable<K>, T> {
   */
  public void insert(K key, T value) {
    if (root == null) {
-     LeafNode<K,T> rightLeaf = new LeafNode<K,T>(key, value);
-     LeafNode<K,T> leftLeaf = new LeafNode<K,T> (new ArrayList<K>(), new ArrayList<T>());
-     ArrayList<Node<K,T>> leafHolder = new ArrayList<Node<K,T>>();
-     ArrayList<K> keyHolder = new ArrayList<K>();
-     leafHolder.add(leftLeaf);
-     leafHolder.add(rightLeaf);
-     keyHolder.add(key);
-     root = new IndexNode<K,T>(keyHolder, leafHolder);
+     //LeafNode<K,T> rightLeaf = new LeafNode<K,T>(key, value);
+     //LeafNode<K,T> leftLeaf = new LeafNode<K,T> (new ArrayList<K>(), new ArrayList<T>());
+     //ArrayList<Node<K,T>> leafHolder = new ArrayList<Node<K,T>>();
+     //ArrayList<K> keyHolder = new ArrayList<K>();
+     //leafHolder.add(leftLeaf);
+     //leafHolder.add(rightLeaf);
+     //keyHolder.add(key);
+     //root = new IndexNode<K,T>(keyHolder, leafHolder);
+	 root = new LeafNode<K,T>(key, value);
      return;
    }
    insertbody(key, value, root);
@@ -65,6 +66,13 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			}
 			else {
 				newEntry = splitLeafNode(leaf);
+				if (n == root) {
+ 					Node<K, T> newEntryChild = newEntry.getValue();
+ 					K newEntryKey = newEntry.getKey();
+ 					IndexNode<K,T> newroot = new IndexNode<K,T>(newEntryKey, n, newEntryChild);
+ 					root = newroot;
+ 					return null;
+ 				}
 				return newEntry;
 			}
 		}
@@ -121,13 +129,13 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	 K splitKey = leaf.keys.get(keySize/2);
 	 
 	 //Get values to go into right leaf node and create it 
-	 ArrayList<T> rightVals = (ArrayList<T>) leaf.values.subList(keySize/2, keySize);
-	 ArrayList<K> rightKeys = (ArrayList<K>) leaf.keys.subList(keySize/2, keySize);
+	 ArrayList<T> rightVals = new ArrayList<T>(leaf.values.subList(keySize/2, keySize));
+	 ArrayList<K> rightKeys = new ArrayList<K>(leaf.keys.subList(keySize/2, keySize));
 	 LeafNode<K,T> rightLeaf = new LeafNode<K,T>(rightKeys, rightVals);
 	 
 	 //remove values from left leaf node
-	 leaf.values = (ArrayList<T>) leaf.values.subList(0, keySize/2);
-	 leaf.keys = (ArrayList<K>) leaf.keys.subList(0, keySize/2);
+	 leaf.values = new ArrayList<T>(leaf.values.subList(0, keySize/2));
+	 leaf.keys = new ArrayList<K>(leaf.keys.subList(0, keySize/2));
 	 
 	 //Bring back the order of the leaves
 	 rightLeaf.nextLeaf = leaf.nextLeaf;
@@ -158,10 +166,10 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	 K splitKey = index.keys.get(swapNum);
 	 
 	 //generate keys and children for each side
-	 ArrayList<K> leftKeys = (ArrayList<K>) index.keys.subList(0, swapNum);
-	 ArrayList<K> rightKeys = (ArrayList<K>) index.keys.subList(swapNum+1, index.keys.size());
-	 ArrayList<Node<K,T>> leftChild = (ArrayList<Node<K,T>>) index.children.subList(0, swapNum+1);
-	 ArrayList<Node<K,T>> rightChild = (ArrayList<Node<K,T>>) index.children.subList(swapNum+1, index.children.size());
+	 ArrayList<K> leftKeys = new ArrayList<K>(index.keys.subList(0, swapNum));
+	 ArrayList<K> rightKeys = new ArrayList<K>(index.keys.subList(swapNum+1, index.keys.size()));
+	 ArrayList<Node<K,T>> leftChild = new ArrayList<Node<K,T>>(index.children.subList(0, swapNum+1));
+	 ArrayList<Node<K,T>> rightChild = new ArrayList<Node<K,T>>(index.children.subList(swapNum+1, index.children.size()));
 	 
 	 //create new index node
 	 IndexNode<K,T> rightIndex = new IndexNode<K,T>(rightKeys, rightChild);

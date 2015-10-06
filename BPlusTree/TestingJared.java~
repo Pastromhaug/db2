@@ -5,10 +5,18 @@ public class TestingJared {
   
   
   public static void main(String[] args) { 
-    String a = "A";
-    String b = "B";
-    System.out.println(a.compareTo(b));
+	System.out.println("HEllo!");
+    BPlusTree<Character, String> tree = new BPlusTree<Character, String>();
+    tree.insert('b',"B");
+    tree.insert('a',"A");
+    tree.insert('c',"C");
+    tree.insert('d', "D");
+    tree.insert('e', "E");
+    tree.insert('f', "F");
+    Utils.printTree(tree);
   }
+  
+  
   
   /* ADD YOUR CODE HERE */
   
