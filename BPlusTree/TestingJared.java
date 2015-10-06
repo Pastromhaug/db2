@@ -10,6 +10,9 @@ public class TestingJared {
     tree.insert('b',"B");
     tree.insert('a',"A");
     tree.insert('c',"C");
+    tree.insert('d', "D");
+    tree.insert('e', "E");
+    tree.insert('f', "F");
     System.out.println(Utils.outputTree(tree));
   }
   

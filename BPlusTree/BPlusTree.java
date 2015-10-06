@@ -1,4 +1,4 @@
-//import java.util.AbstractMap;
+import java.util.AbstractMap;
 import java.util.Map.Entry;
 import java.util.ArrayList;
 
@@ -43,52 +43,65 @@ public class BPlusTree<K extends Comparable<K>, T> {
      root = new IndexNode<K,T>(keyHolder, leafHolder);
      return;
    }
-   insertbody(key, value, root, null);
+   insertbody(key, value, root);
  }
 
- public void insertbody(K key, T value, Node n, Entry<K, Node<K,T>> newchildentry) {
- 	if (n.isLeafNode == false) {
+ public Entry<K, Node<K,T>> insertbody(K key, T value, Node<K,T> n) {
+	 //get list of keys
+	 ArrayList<K> nodeKeys = n.keys;
+	 Entry<K, Node<K,T>> newEntry;
+	 
+	 if (n.isLeafNode) { // n is leaf node
+		LeafNode<K,T> leaf = (LeafNode<K,T>) n;
+		//edge case, no values in leaf
+		if (leaf.keys.size() == 0) {
+			leaf.keys.add(key);
+			leaf.values.add(value);
+		}
+		else {
+			leaf.insertSorted(key, value);
+			if (!n.isOverflowed()) {
+				return null;
+			}
+			else {
+				newEntry = splitLeafNode(leaf);
+				return newEntry;
+			}
+		}
+	 }
+	 //n is an index node
+	 else {
+ 		IndexNode<K,T> index = (IndexNode<K,T>) n;
  		int i;
- 		for (i = 0; i < n.keys.size(); i++){
- 			if (nodeKeys.get(i).compareTo(key) > 0) break;
+ 		for (i = 0; i < index.keys.size(); i++){
+ 			if (nodeKeys.get(i).compareTo(key) > 0) {
+ 				break;
+ 			}
  		}
- 		insertbody(key, value, n.children(i));
- 		if (newchildentry == null) {
- 			return;
+ 		newEntry = insertbody(key, value, index.children.get(i));
+ 		if (newEntry == null) {
+ 			return null;
  		}
- 		else{
- 			if (n.isOverFlowed == false){
- 				n.insertSorted(newchildentry, i);
+ 		else {
+ 			index.insertSorted(newEntry);
+ 			if (!index.isOverflowed()) {
+ 				return null;
  			}
  			else {
- 				newchildentry = splitIndexNode(n);
- 				if (n == root){
- 					IndexNode<K,T> newroot = new IndexNode(
- 							newchildentry.keys, newchildentry.children);
- 					Entry<K,Node<K,T>> leftentry =
-			    		new AbstractMap.SimpleEntry<K, Node<K,T>>(n.keys, n.children);
-			    	insertSorted(leftentry, 0);
+ 				newEntry = splitIndexNode(index);
+ 				if (n == root) {
+ 					Node<K, T> newEntryChild = newEntry.getValue();
+ 					K newEntryKey = newEntry.getKey();
+ 					IndexNode<K,T> newroot = new IndexNode<K,T>(newEntryKey, n, newEntryChild);
  					root = newroot;
+ 					return null;
  				}
- 				return;
+ 				return newEntry;
  			}
  		}
 
  	}
- 	else{ // n is leaf node
- 		if (n.isOverFlowed == false){
- 			n.insertSorted(K, T);
- 			newchildentry = null
- 			return;
- 		}
- 		else{
- 			newchildentry = splitLeafNode(n);
- 			LeafNode<K,T> newright = newchildentry.getValue();
- 			n.nextLeaf = newright;
- 			newright.previousLeaf = n;
- 			return;
- 		}
- 	}
+	return null;
  }
 
  /**
@@ -216,11 +229,11 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	 ArrayList<Node<K,T>> children;
 	 ArrayList<K> nodeKeys;
 	 //traverse through the tree until it finds a leafNode
-	 while(!searchNode.isLeaf()) {
+	 while(!searchNode.isLeafNode) {
 		 foundNext = false;
 		 index = (IndexNode<K,T>) searchNode;
-		 nodeKeys = (ArrayList<K>) searchNode.getKeys();
-		 children = index.getChildren();
+		 nodeKeys = (ArrayList<K>) searchNode.keys;
+		 children = index.children;
 		 for (int i = 0; i < nodeKeys.size(); i++) {
 			 if (nodeKeys.get(i).compareTo(key) > 0) {
 				 searchNode = children.get(i);

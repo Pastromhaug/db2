@@ -43,9 +43,21 @@ public class IndexNode<K extends Comparable<K>, T> extends Node<K,T> {
   }
  }
  
- //JARED ADDED THIS
- public ArrayList<Node<K,T>> getChildren() {
-   return children;
+ /** insert the entry into this node so that it remains sorted
+  * 
+  *
+  */
+ public void insertSorted(Entry<K, Node<K,T>> e) {
+	 K key = e.getKey();
+	 int i;
+	 Node<K,T> child = e.getValue();
+	 for (i = 0; i < keys.size(); i++) {
+		 if (key.compareTo(keys.get(i)) < 0) {
+			 break;
+		 }
+	 }
+	 keys.add(i, key);
+	 children.add(i + 1, child);
  }
 
 }

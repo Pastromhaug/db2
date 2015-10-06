@@ -11,15 +11,4 @@ public class Node<K extends Comparable<K>, T> {
  public boolean isUnderflowed() {
   return keys.size() < BPlusTree.D;
  }
-
- //JARED METHOD
- public boolean isLeaf() {
-   return isLeafNode;
- }
- 
- //JARED METHOD
- public ArrayList<K> getKeys() { 
-   return keys;
- }
- 
 }
