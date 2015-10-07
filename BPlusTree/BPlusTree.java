@@ -73,7 +73,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
  		IndexNode<K,T> index = (IndexNode<K,T>) n;
  		int i;
  		for (i = 0; i < index.keys.size(); i++){
- 			if (nodeKeys.get(i).compareTo(key) > 0) {
+ 			if (nodeKeys.get(i).compareTo(key) >= 0) {
  				break;
  			}
  		}
@@ -187,6 +187,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	 }
 	 //if root is a leaf node
 	 else if (root.isLeafNode) {
+		 System.out.println("Root is leaf");
 		 LeafNode<K,T> leaf = (LeafNode<K,T>) root;
 		 ArrayList<K> keys = leaf.keys;
 		 ArrayList<T> values = leaf.values;
@@ -211,21 +212,111 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	 }
 	 //root is index node
 	 else {
-		 
+		 Node<K,T> nextNode = null;
+		 boolean foundNext = false;
+		 IndexNode<K,T> index = (IndexNode<K,T>) root;
+		 ArrayList<K> nodeKeys = (ArrayList<K>) index.keys;
+		 ArrayList<Node<K,T>> children = index.children;
+		 for (int i = 0; i < nodeKeys.size(); i++) {
+			 if (nodeKeys.get(i).compareTo(key) > 0) {
+				 nextNode = children.get(i);
+				 foundNext = true;
+				 System.out.println("In delete method, next node is node "+i);
+				 break;
+			 }
+		}
+		if (!foundNext) {
+			System.out.println("In delete method, next node is node "+nodeKeys.size());
+			nextNode = children.get(nodeKeys.size());
+		}
+		delete_help(index, nextNode, key);
+		if (index.children.size() == 1) {
+			root = index.children.get(0);
+		}
 	 }
 
  }
  
  //returns 0 if no problem, 1 if there was a reorganization
- public int delete_help(Node<K,T> parent, Node<K,T> node, K key) {
-	 if (parent.isLeafNode) {
-		 LeafNode<K,T> leaf = (LeafNode<K,T>) parent;
-		 int index = leaf.remove(key);
+ public int delete_help(IndexNode<K,T> parent, Node<K,T> node, K key) {
+	 if (node.isLeafNode) {
+		 System.out.println("Looking at a leaf node now");
+		 LeafNode<K,T> leaf = (LeafNode<K,T>) node;
+		 leaf.remove(key);
 		 if (leaf.isUnderflowed()) {
-			 if (index != 0) {
-				 handleLeafUnderflow();
+			 System.out.println("Leaf node underflowed");
+			 int splitkey = -1;
+			 int index = -1;
+			 for (int i = 0; i < parent.children.size(); i++) {
+				 if (parent.children.get(i).equals(node)) {
+					 System.out.println("Index is " + i);
+					 index = i;
+					 break;
+				 }
 			 }
+			 if (index == -1) {
+				 assert(false);
+			 }
+			 else if (index == 0) {
+				 splitkey = handleLeafNodeUnderflow(leaf, leaf.nextLeaf, parent);
+			 }
+			 else {
+				 splitkey = handleLeafNodeUnderflow(leaf.previousLeaf, leaf, parent);
+				 System.out.println("Splitkey is " + splitkey);
+			 }
+			 if (splitkey != -1){
+				 parent.keys.remove(splitkey);
+				 System.out.println("Parent node size is " + parent.keys.size());
+				 parent.children.remove(splitkey+1);
+				 System.out.println("Parent's children count is " + parent.children.size());
+				 return 1;
+			 }
+			 return 0;
 		 }
+		 return 0;
+	 }
+	 else {
+		 IndexNode<K,T> index = (IndexNode<K,T>) node;
+		 Node<K,T> nextNode = null;
+		 boolean foundNext = false;
+		 ArrayList<K> nodeKeys = (ArrayList<K>) index.keys;
+		 ArrayList<Node<K,T>> children = index.children;
+		 for (int i = 0; i < nodeKeys.size(); i++) {
+			 if (nodeKeys.get(i).compareTo(key) > 0) {
+				 nextNode = children.get(i);
+				 foundNext = true;
+				 break;
+			 }
+		}
+		if (!foundNext) {
+			nextNode = children.get(nodeKeys.size());
+		}
+		int response = delete_help(index, nextNode, key);
+		if (response == 1) {
+			int splitkey = -1;
+			int nodeLoc = -1;
+			for (int i = 0; i < parent.children.size(); i++) {
+				 if (parent.children.get(i).equals(node)) {
+					 nodeLoc = i;
+					 break;
+				 }
+			 }
+			if (nodeLoc == -1) {
+				assert(false);
+			}
+			else if (nodeLoc == 0) {
+				splitkey = handleIndexNodeUnderflow(index, (IndexNode<K,T>) parent.children.get(1), parent);
+			}
+			else {
+				splitkey = handleIndexNodeUnderflow((IndexNode<K,T>) parent.children.get(nodeLoc-1), index, parent);
+			}
+			 if (splitkey != -1){
+				 parent.keys.remove(splitkey);
+				 parent.children.remove(splitkey);
+				 return 1;
+			 }
+		}
+		 
 	 }
 	 return 0;
  }
@@ -248,26 +339,30 @@ IndexNode<K,T> parent) {
 	 int parentpivotindex = 0;
 	 // loop through all parent keys to find the pivotkey for the merge
 	 for (int j = 0; j < parent.keys.size(); j++){
-	 	 boolean leftLessEqualParentkey = left.keys.get(left.keys.size()-1).compareTo(parent.keys.get(j)) == -1 ||
-	 			 						  left.keys.get(left.keys.size()-1).compareTo(parent.keys.get(j)) == 0;
-	 	 boolean rightGreaterParentkey = 
-	 			 right.keys.get(0).compareTo(parent.keys.get(j)) == 1;
+		 //true if last key on left is less than key
+	 	 boolean leftLessParentKey = left.keys.get(left.keys.size()-1).compareTo(parent.keys.get(j)) == -1;
+	 	 //true if first key on right is greater than or equal to key
+	 	 boolean rightGreaterEqualParentKey = 
+	 			 right.keys.get(0).compareTo(parent.keys.get(j)) >= 1;
 	 	 
 	 	// if j is the index of parent key that separates left and right before merge
-	 	 if (leftLessEqualParentkey && rightGreaterParentkey){ 
+	 	 if (leftLessParentKey && rightGreaterEqualParentKey){ 
 	 		 parentpivotindex= j;
 	 		 break;
 	 	 }
 	 }
 	 // if we can merge left and right
-	 if (left.keys.size() + right.keys.size() <= 2D){ 
+	 if (left.keys.size() + right.keys.size() <= 2*D){ 
 		 // loop through right entries and insert them into left Leaf
 		 for (int i = 0; i < right.keys.size(); i++){
 			 left.insertSorted(right.keys.get(i), right.values.get(i));
 		 }
-		 parent.children.remove(parentpivotindex+1);
-		 splitkey = parentpivotindex;
-		 return splitkey;
+		 //preserve leaf order
+		 left.nextLeaf = right.nextLeaf;
+		 if (right.nextLeaf != null) {
+			 right.nextLeaf.previousLeaf = left;
+		 }
+		 return parentpivotindex;
 	 }
 	 // we can't merge left and right, have to redistribute
 	 else {
@@ -276,6 +371,7 @@ IndexNode<K,T> parent) {
 				 left.insertSorted(right.keys.get(0), right.values.get(0));
 				 right.keys.remove(0);
 				 right.values.remove(0);
+				 
 			 }
 		 }
 		 else if (right.keys.size() < D){ // move entries from left to right
@@ -285,10 +381,8 @@ IndexNode<K,T> parent) {
 				 left.values.remove(left.values.size()-1);
 			 }
 		 }
-		 parent.keys.remove(parentpivotindex);
-		 parent.keys.add(parentpivotindex, left.keys.get(left.keys.size()-1));
-		 return splitkey;
-		 
+		 parent.keys.set(parentpivotindex,left.keys.get(left.keys.size()-1));
+		 return splitkey; 
 	 }
  }
 
@@ -309,46 +403,44 @@ IndexNode<K,T> parent) {
 	 int splitkey = -1;
 	 int parentpivotindex = 0;
 	 // loop through all parent keys to find the pivotkey for the merge
-	 for (int j = 0; j < parent.keys.size(); j++){
-	 	 boolean leftLessEqualParentkey = leftIndex.keys.get(leftIndex.keys.size()-1).compareTo(parent.keys.get(j)) == -1 ||
-	 			 						  leftIndex.keys.get(leftIndex.keys.size()-1).compareTo(parent.keys.get(j)) == 0;
-	 	 boolean rightGreaterParentkey = 
-	 			 rightIndex.keys.get(0).compareTo(parent.keys.get(j)) == 1;
+	 for (int j = 0; j < parent.keys.size(); j++) {
+	 	 boolean leftLessParentKey = leftIndex.keys.get(leftIndex.keys.size()-1).compareTo(parent.keys.get(j)) == -1;
+	 	 boolean rightGreaterEqualParentKey = 
+	 			 rightIndex.keys.get(0).compareTo(parent.keys.get(j)) >= 0;
 	 	 
 	 	// if j is the index of parent key that separates left and right before merge
-	 	 if (leftLessEqualParentkey && rightGreaterParentkey){ 
-	 		 parentpivotindex= j;
+	 	 if (leftLessParentKey && rightGreaterEqualParentKey){ 
+	 		 parentpivotindex = j;
 	 		 break;
 	 	 }
 	 }
 	 // if we can merge left and right
 	 if (leftIndex.keys.size() + rightIndex.keys.size() <= 2D){ 
 		 // loop through right entries and insert them into left Leaf
+		 leftIndex.insertSorted(parent.keys.get(parentpivotindex), rightIndex.children.get(0));
 		 for (int i = 0; i < rightIndex.keys.size(); i++){
-			 leftIndex.insertSorted(rightIndex.keys.get(i), rightIndex.children.get(i));
+			 leftIndex.insertSorted(rightIndex.keys.get(i), rightIndex.children.get(i+1));
 		 }
-		 parent.children.remove(parentpivotindex+1);
-		 splitkey = parentpivotindex;
-		 return splitkey;
+		 return parentpivotindex;
 	 }
 	 // we can't merge left and right, have to redistribute
 	 else {
 		 if (leftIndex.keys.size() < D){ // move entries from right to left
 			 while (leftIndex.keys.size() < D){
-				 leftIndex.insertSorted(rightIndex.keys.get(0), rightIndex.children.get(0));
+				 leftIndex.insertSorted(parent.keys.get(parentpivotindex), rightIndex.children.get(0));
+				 parent.keys.set(parentpivotindex, rightIndex.keys.get(0));
 				 rightIndex.keys.remove(0);
 				 rightIndex.children.remove(0);
 			 }
 		 }
 		 else if (rightIndex.keys.size() < D){ // move entries from left to right
 			 while(rightIndex.keys.size() < D){
-				 rightIndex.insertSorted(leftIndex.keys.get(leftIndex.keys.size()-1), leftIndex.children.get(leftIndex.children.size()-1));
+				 rightIndex.insertSorted(parent.keys.get(parentpivotindex), leftIndex.children.get(leftIndex.children.size()-1));
+				 parent.keys.set(parentpivotindex, leftIndex.keys.get(leftIndex.keys.size()-1));
 				 leftIndex.keys.remove(leftIndex.keys.size()-1);
 				 leftIndex.children.remove(leftIndex.children.size()-1);
 			 }
 		 }
-		 parent.keys.remove(parentpivotindex);
-		 parent.keys.add(parentpivotindex, leftIndex.keys.get(leftIndex.keys.size()-1));
 		 return splitkey; 
 	 }
  }
