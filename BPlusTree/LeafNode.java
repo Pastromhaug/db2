@@ -61,5 +61,16 @@ public class LeafNode<K extends Comparable<K>, T> extends Node<K, T> {
    }
    return null;
  }
+ 
+ public int remove(K key) {
+	 for (int i = 0; i < keys.size(); i++) {
+		 if (key.equals(keys.get(i))) {
+			 keys.remove(i);
+			 values.remove(i);
+			 return i;
+		 }
+	 }
+	 return -1;
+ }
 
 }

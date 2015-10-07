@@ -18,7 +18,6 @@ public class BPlusTree<K extends Comparable<K>, T> {
   * @param key
   * @return value
   */
- //JARED HERE
  public T search(K key) {
   LeafNode<K,T> leaf;
   leaf = getLeaf(key);
@@ -33,14 +32,6 @@ public class BPlusTree<K extends Comparable<K>, T> {
   */
  public void insert(K key, T value) {
    if (root == null) {
-     //LeafNode<K,T> rightLeaf = new LeafNode<K,T>(key, value);
-     //LeafNode<K,T> leftLeaf = new LeafNode<K,T> (new ArrayList<K>(), new ArrayList<T>());
-     //ArrayList<Node<K,T>> leafHolder = new ArrayList<Node<K,T>>();
-     //ArrayList<K> keyHolder = new ArrayList<K>();
-     //leafHolder.add(leftLeaf);
-     //leafHolder.add(rightLeaf);
-     //keyHolder.add(key);
-     //root = new IndexNode<K,T>(keyHolder, leafHolder);
 	 root = new LeafNode<K,T>(key, value);
      return;
    }
@@ -190,7 +181,53 @@ public class BPlusTree<K extends Comparable<K>, T> {
   * @param key
   */
  public void delete(K key) {
+	 //root should never be null
+	 if (root == null) {
+		 return;
+	 }
+	 //if root is a leaf node
+	 else if (root.isLeafNode) {
+		 LeafNode<K,T> leaf = (LeafNode<K,T>) root;
+		 ArrayList<K> keys = leaf.keys;
+		 ArrayList<T> values = leaf.values;
+		 //root leaf node shouldn't be empty
+		 if (keys.size() == 0) {
+			 root = null;
+			 return;
+		 }
+		 //if only one key left and it is this key
+		 if (keys.size() == 1 && keys.get(0).equals(key)) {
+			 root = null;
+			 return;
+		 }
+		 //otherwise, search and delete
+		 for (int i = 0; i < keys.size(); i++) {
+			 if (keys.get(i).equals(key)) {
+				 keys.remove(i);
+				 values.remove(i);
+				 return;
+			 }
+		 }
+	 }
+	 //root is index node
+	 else {
+		 
+	 }
 
+ }
+ 
+ //returns 0 if no problem, 1 if there was a reorganization
+ public int delete_help(Node<K,T> parent, Node<K,T> node, K key) {
+	 if (parent.isLeafNode) {
+		 LeafNode<K,T> leaf = (LeafNode<K,T>) parent;
+		 int index = leaf.remove(key);
+		 if (leaf.isUnderflowed()) {
+			 if (index != 0) {
+				 handleLeafUnderflow();
+			 }
+		 }
+	 }
+	 return 0;
  }
 
  /**

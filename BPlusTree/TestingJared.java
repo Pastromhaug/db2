@@ -10,7 +10,7 @@ public class TestingJared {
     tree.insert(1,"1");
     tree.insert(2,"2");
     tree.insert(3,"3");
-    tree.insert(4, "4");
+    /*tree.insert(4, "4");
     tree.insert(5, "5");
     tree.insert(6, "6");
     tree.insert(7, "7");
@@ -26,7 +26,10 @@ public class TestingJared {
     tree.insert(17, "17");
     tree.insert(18, "18");
     tree.insert(19, "19");
-    tree.insert(20, "20");
+    tree.insert(20, "20");*/
+    tree.delete(1);
+    tree.delete(2);
+    //tree.delete(3);
 
 
     // tree.insert('g', "G");
