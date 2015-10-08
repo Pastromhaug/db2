@@ -74,7 +74,7 @@ public class Tests {
   // Initial tree
   String test = Utils.outputTree(tree);
   String correct = "@13/17/24/30/@%%[(2,2);(3,3);(5,5);(7,7);]#[(14,14);(16,16);]#[(19,19);(20,20);(22,22);]#[(24,24);(27,27);(29,29);]#[(33,33);(34,34);(38,38);(39,39);]$%%";
-  //assertEquals(test, correct);
+  assertEquals(test, correct);
  }
 
  // testing proper leaf node merging behaviour
@@ -87,17 +87,22 @@ public class Tests {
   }
   BPlusTree<Integer, String> tree = new BPlusTree<Integer, String>();
   Utils.bulkInsert(tree, testNumbers, testNumberStrings);
+  
+  System.out.println("printing this");
+  Utils.printTree(tree);
 
   tree.delete(6);
+  Utils.printTree(tree);
   tree.delete(7);
+  Utils.printTree(tree);
   tree.delete(8);
+
   String test = Utils.outputTree(tree);
-  System.out.println("PRINTING NOW");
   Utils.printTree(tree);
 
   String result = "@4/@%%[(2,2);(3,3);]#[(4,4);(5,5);]$%%";
   System.out.println(result);
-  //assertEquals(result, test);
+  assertEquals(result, test);
  }
 
  // Testing appropriate depth and node invariants on a big tree

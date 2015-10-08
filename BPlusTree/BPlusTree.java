@@ -13,31 +13,34 @@ public class BPlusTree<K extends Comparable<K>, T> {
  public static final int D = 2;
 
  /**
-  * TODO Search the value for a specific key
+  * Search the value for a specific key
   * 
   * @param key
   * @return value
   */
  public T search(K key) {
   LeafNode<K,T> leaf;
-  leaf = getLeaf(key);
-  return (T) leaf.getValue(key);
+  leaf = getLeaf(key); //gets the leaf where the key should be located
+  return (T) leaf.getValue(key); //return value
  }
 
  /**
-  * TODO Insert a key/value pair into the BPlusTree
+  * Insert a key/value pair into the BPlusTree
   * 
   * @param key
   * @param value
   */
  public void insert(K key, T value) {
+   //If empty tree, create a leaf
    if (root == null) {
 	 root = new LeafNode<K,T>(key, value);
      return;
    }
+   //call recursive insert
    insertbody(key, value, root);
  }
 
+ //bulk work of insert function
  public Entry<K, Node<K,T>> insertbody(K key, T value, Node<K,T> n) {
 	 //get list of keys
 	 ArrayList<K> nodeKeys = n.keys;
@@ -45,10 +48,11 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	 
 	 if (n.isLeafNode) { // n is leaf node
 		LeafNode<K,T> leaf = (LeafNode<K,T>) n;
-		//edge case, no values in leaf
+		//edge case, no values in leaf, shouldn't happen
 		if (leaf.keys.size() == 0) {
 			leaf.keys.add(key);
 			leaf.values.add(value);
+			assert(false);
 		}
 		else {
 			leaf.insertSorted(key, value);
@@ -104,7 +108,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
  }
 
  /**
-  * TODO Split a leaf node and return the new right node and the splitting
+  * Split a leaf node and return the new right node and the splitting
   * key as an Entry<slitingKey, RightNode>
   * 
   * @param leaf, any other relevant data
@@ -176,7 +180,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
  }
 
  /**
-  * TODO Delete a key/value pair from this B+Tree
+  *  Delete a key/value pair from this B+Tree
   * 
   * @param key
   */
@@ -187,7 +191,6 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	 }
 	 //if root is a leaf node
 	 else if (root.isLeafNode) {
-		 System.out.println("Root is leaf");
 		 LeafNode<K,T> leaf = (LeafNode<K,T>) root;
 		 ArrayList<K> keys = leaf.keys;
 		 ArrayList<T> values = leaf.values;
@@ -221,60 +224,63 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			 if (nodeKeys.get(i).compareTo(key) > 0) {
 				 nextNode = children.get(i);
 				 foundNext = true;
-				 System.out.println("In delete method, next node is node "+i);
 				 break;
 			 }
 		}
 		if (!foundNext) {
-			System.out.println("In delete method, next node is node "+nodeKeys.size());
 			nextNode = children.get(nodeKeys.size());
 		}
-		delete_help(index, nextNode, key);
+		int response = delete_help(index, nextNode, key);
 		if (index.children.size() == 1) {
 			root = index.children.get(0);
+		}
+		if (response == 1) {
+			System.out.println("Should i be doing something here?");
 		}
 	 }
 
  }
  
  //returns 0 if no problem, 1 if there was a reorganization
+ //bulk of delete work done here
  public int delete_help(IndexNode<K,T> parent, Node<K,T> node, K key) {
+	 //if leaf node
 	 if (node.isLeafNode) {
-		 System.out.println("Looking at a leaf node now");
 		 LeafNode<K,T> leaf = (LeafNode<K,T>) node;
 		 leaf.remove(key);
+		 //if underflowed
 		 if (leaf.isUnderflowed()) {
-			 System.out.println("Leaf node underflowed");
 			 int splitkey = -1;
 			 int index = -1;
+			 //find child index
 			 for (int i = 0; i < parent.children.size(); i++) {
 				 if (parent.children.get(i).equals(node)) {
-					 System.out.println("Index is " + i);
 					 index = i;
 					 break;
 				 }
 			 }
+			 //should always find index
 			 if (index == -1) {
 				 assert(false);
 			 }
+			 //if no left leaf, pass in right
 			 else if (index == 0) {
 				 splitkey = handleLeafNodeUnderflow(leaf, leaf.nextLeaf, parent);
 			 }
+			 //base case
 			 else {
 				 splitkey = handleLeafNodeUnderflow(leaf.previousLeaf, leaf, parent);
-				 System.out.println("Splitkey is " + splitkey);
 			 }
 			 if (splitkey != -1){
 				 parent.keys.remove(splitkey);
-				 System.out.println("Parent node size is " + parent.keys.size());
 				 parent.children.remove(splitkey+1);
-				 System.out.println("Parent's children count is " + parent.children.size());
 				 return 1;
 			 }
 			 return 0;
 		 }
 		 return 0;
 	 }
+	 //if index
 	 else {
 		 IndexNode<K,T> index = (IndexNode<K,T>) node;
 		 Node<K,T> nextNode = null;
@@ -291,10 +297,14 @@ public class BPlusTree<K extends Comparable<K>, T> {
 		if (!foundNext) {
 			nextNode = children.get(nodeKeys.size());
 		}
+		//recurse
 		int response = delete_help(index, nextNode, key);
-		if (response == 1) {
+		
+		//if something was moved, and underflowed, fix
+		if (response == 1 && index.isUnderflowed()) {
 			int splitkey = -1;
 			int nodeLoc = -1;
+			//find child_index
 			for (int i = 0; i < parent.children.size(); i++) {
 				 if (parent.children.get(i).equals(node)) {
 					 nodeLoc = i;
@@ -304,12 +314,14 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			if (nodeLoc == -1) {
 				assert(false);
 			}
+			//handle underflow
 			else if (nodeLoc == 0) {
 				splitkey = handleIndexNodeUnderflow(index, (IndexNode<K,T>) parent.children.get(1), parent);
 			}
 			else {
 				splitkey = handleIndexNodeUnderflow((IndexNode<K,T>) parent.children.get(nodeLoc-1), index, parent);
 			}
+			//remove splitkey if merged
 			 if (splitkey != -1){
 				 parent.keys.remove(splitkey);
 				 parent.children.remove(splitkey);
@@ -322,7 +334,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
  }
 
  /**
-  * TODO Handle LeafNode Underflow (merge or redistribution)
+  *  Handle LeafNode Underflow (merge or redistribution)
   * 
   * @param left
   *            : the smaller node
@@ -351,8 +363,8 @@ IndexNode<K,T> parent) {
 	 		 break;
 	 	 }
 	 }
-	 // if we can merge left and right
-	 if (left.keys.size() + right.keys.size() <= 2*D){ 
+	 // if we should merge left and right
+	 if (left.keys.size() + right.keys.size() < 2*D){ 
 		 // loop through right entries and insert them into left Leaf
 		 for (int i = 0; i < right.keys.size(); i++){
 			 left.insertSorted(right.keys.get(i), right.values.get(i));
@@ -364,7 +376,7 @@ IndexNode<K,T> parent) {
 		 }
 		 return parentpivotindex;
 	 }
-	 // we can't merge left and right, have to redistribute
+	 // we shouldn't merge left and right, will redistribute
 	 else {
 		 if (left.keys.size() < D){ // move entries from right to left
 			 while (left.keys.size() < D){
@@ -381,7 +393,7 @@ IndexNode<K,T> parent) {
 				 left.values.remove(left.values.size()-1);
 			 }
 		 }
-		 parent.keys.set(parentpivotindex,left.keys.get(left.keys.size()-1));
+		 parent.keys.set(parentpivotindex,right.keys.get(0));
 		 return splitkey; 
 	 }
  }
@@ -414,8 +426,8 @@ IndexNode<K,T> parent) {
 	 		 break;
 	 	 }
 	 }
-	 // if we can merge left and right
-	 if (leftIndex.keys.size() + rightIndex.keys.size() <= 2D){ 
+	 // if we should merge left and right
+	 if (leftIndex.keys.size() + rightIndex.keys.size() < 2D){ 
 		 // loop through right entries and insert them into left Leaf
 		 leftIndex.insertSorted(parent.keys.get(parentpivotindex), rightIndex.children.get(0));
 		 for (int i = 0; i < rightIndex.keys.size(); i++){
@@ -423,7 +435,7 @@ IndexNode<K,T> parent) {
 		 }
 		 return parentpivotindex;
 	 }
-	 // we can't merge left and right, have to redistribute
+	 // we shouldn't merge left and right, will to redistribute
 	 else {
 		 if (leftIndex.keys.size() < D){ // move entries from right to left
 			 while (leftIndex.keys.size() < D){
