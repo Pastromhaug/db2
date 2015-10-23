@@ -6,20 +6,21 @@
  **/
 public class FunctionalDependency {
 
-	private final AttributeSet _independentAttributeSet;
-	private final AttributeSet _dependentAttributeSet;
-	//this FD represents independentSet -> dependentSet
+ private final AttributeSet _independentAttributeSet;
+ private final AttributeSet _dependentAttributeSet;
+ //int count;
+ //this FD represents independentSet -> dependentSet
 
-	public FunctionalDependency(AttributeSet ind, AttributeSet dep) {
-		_independentAttributeSet = new AttributeSet(ind);
-		_dependentAttributeSet = new AttributeSet(dep);
-	}
+ public FunctionalDependency(AttributeSet ind, AttributeSet dep) {
+  _independentAttributeSet = new AttributeSet(ind);
+  _dependentAttributeSet = new AttributeSet(dep);
+ }
 
-	public AttributeSet independent() {
-		return new AttributeSet(_independentAttributeSet);
-	}
+ public AttributeSet independent() {
+  return new AttributeSet(_independentAttributeSet);
+ }
 
-	public AttributeSet dependent() {
-		return new AttributeSet(_dependentAttributeSet);
-	}
+ public AttributeSet dependent() {
+  return new AttributeSet(_dependentAttributeSet);
+ }
 }
