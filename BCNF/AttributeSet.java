@@ -27,7 +27,7 @@ public class AttributeSet {
  
  public void removeAttribute(Attribute a) {
    if(_attributes.contains(a))
-   _attributes.add(a);
+   _attributes.remove(a);
  }
 
  public boolean contains(Attribute a) {
@@ -45,9 +45,6 @@ public class AttributeSet {
   }
   AttributeSet otherAtt = (AttributeSet) other;
   if (otherAtt.size() != _attributes.size()) {
-    
-    System.out.println("Other size is " + otherAtt.size());
-    System.out.println("This size is " + _attributes.size());
     return false;
   }
   for (int i = 0; i < _attributes.size(); i++) {
@@ -69,5 +66,21 @@ public class AttributeSet {
    out += iter.next() + "\t";
 
   return out;
+ }
+ 
+ public HashSet<Attribute> toSet() {
+   return new HashSet<Attribute>(_attributes);
+ }
+ 
+ public int hashCode() {
+   int returnVal = 0;
+   for(int i = 0; i < _attributes.size(); i++) {
+     returnVal+= _attributes.get(i).toString().charAt(0);
+   }
+   return returnVal;
+ }
+ 
+ public Attribute getFirst() {
+   return _attributes.get(0);
  }
 }

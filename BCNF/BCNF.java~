@@ -7,14 +7,92 @@ public class BCNF {
    **/
   public static Set<AttributeSet> decompose(AttributeSet attributeSet,
                                             Set<FunctionalDependency> functionalDependencies) {
+    //Already BCNF, since no functional dependencies
+    if (functionalDependencies.isEmpty()) {
+      return Collections.emptySet();
+    }
+    //Otherwise...
+    Set<Attribute> hashAtt = attributeSet.toSet();
+    Set<Set<Attribute>> powerSet = powerset(hashAtt);
+    for (Set<Attribute> attSubSet : powerSet) {
+      AttributeSet x = new AttributeSet();
+      for (Attribute att : attSubSet) {
+        x.addAttribute(att);
+      }
+    }
     return Collections.emptySet();
   }
 
   /**
    * Recommended helper method
-   **/
+   **/  
   public static AttributeSet closure(AttributeSet attributeSet, Set<FunctionalDependency> functionalDependencies) {
-    // TODO: implement me!
-    return null;
+    boolean changed = true;
+    AttributeSet returnAtt = new AttributeSet(attributeSet);
+    while(changed)
+    {
+      changed = false;
+      for (FunctionalDependency dependency : functionalDependencies) { 
+        if (containsAll(returnAtt, dependency.independent()) && !containsAll(returnAtt, dependency.dependent())) {
+          Iterator<Attribute> iter = dependency.dependent().iterator();
+          while (iter.hasNext()) {
+            Attribute nextAtt = iter.next();
+            if (!returnAtt.contains(nextAtt)) {
+              returnAtt.addAttribute(nextAtt);
+              changed = true;
+            }
+          }
+        }
+      }
+    }
+    
+    return returnAtt;
+    
+    //TODO: DO IMPLEMENTATION THAT THEY WANT
+    //Part 1: Initialization:
+    //Hashtable<String, Attribute> attHash = new Hashtable<String, Attribute>();
+    //for (FunctionalDependency dependency : functionalDependencies) {  
+      
+    }
+  
+  public static Set<Set<Attribute>> powerset(Set<Attribute> att) {
+    if (att == null || att.size() == 0) {
+      return new HashSet<Set<Attribute>>();
+    }
+    HashSet<Set<Attribute>> responseSet = new HashSet<Set<Attribute>>();
+    responseSet.add(att);
+    if (att.size() == 1) {
+      return responseSet;
+    }
+    Iterator<Attribute> iter = att.iterator();
+    while (iter.hasNext()) {
+      Attribute nextAtt = iter.next();
+      HashSet<Attribute> recurseAtt = new HashSet<Attribute>(att);
+      recurseAtt.remove(nextAtt);
+      Set<Set<Attribute>> recurseSet = powerset(recurseAtt);
+      responseSet.addAll(recurseSet);
+    }
+    return responseSet;
+    
   }
+ 
+  //Given two attribute sets, returns true if the second is a subset of the first, false otherwise
+  public static boolean containsAll(AttributeSet att, AttributeSet sub) {
+    if (att == null || sub == null) {
+      return false;
+    }
+    Iterator<Attribute> subIter = sub.iterator();
+    while (subIter.hasNext()) {
+      Attribute nextAtt = subIter.next();
+      if (!att.contains(nextAtt)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  public static void printAttributes(AttributeSet attributeSet) {
+    System.out.println(attributeSet.toString());
+  }
+  
 }

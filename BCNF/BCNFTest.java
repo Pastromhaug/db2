@@ -106,4 +106,86 @@ public class BCNFTest {
     response = BCNF.closure(attrs, fds);
     assertTrue("Should not have included that fd", response.equals(responseAttrs)); //TESTS bad fd
   }
+  
+  //Tests power set 
+ @Test
+  public void testPowerset() {
+    HashSet<Attribute> hashAtt = new HashSet<Attribute>();
+    Attribute a = new Attribute("a");
+    Attribute b = new Attribute("b");
+    Attribute c = new Attribute("c");
+    Attribute d = new Attribute("d");
+    Set<Set<Attribute>> power = BCNF.powerset(hashAtt);
+    assertTrue("Wrong size", power.size() == 0);
+    hashAtt.add(a);
+    power = BCNF.powerset(hashAtt);
+    assertTrue("Wrong size", power.size() == 1);
+    hashAtt.add(b);
+    power = BCNF.powerset(hashAtt);
+    assertTrue("Wrong size", power.size() == 3);
+    hashAtt.add(c);
+    power = BCNF.powerset(hashAtt);
+    assertTrue("Wrong size", power.size() == 7);
+    hashAtt.add(d);
+    power = BCNF.powerset(hashAtt);
+    assertTrue("Wrong size", power.size() == 15);
+  }
+ @Test
+  public void testBCNF() {
+    //construct table
+    Attribute a = new Attribute("a");
+    Attribute b = new Attribute("b");
+    Attribute c = new Attribute("c");
+    Attribute d = new Attribute("d");
+    Attribute e = new Attribute("e");
+    Attribute f = new Attribute("f");
+    Attribute g = new Attribute("g");
+    AttributeSet attrs = new AttributeSet();
+    attrs.addAttribute(a);
+    attrs.addAttribute(b);
+    attrs.addAttribute(c);
+    attrs.addAttribute(d);
+    attrs.addAttribute(e);
+    attrs.addAttribute(f);
+    attrs.addAttribute(g);
+    
+    //create functional dependencies
+    //d->bc
+    Set<FunctionalDependency> fds = new HashSet<FunctionalDependency>();
+    AttributeSet ind1 = new AttributeSet();
+    AttributeSet dep1 = new AttributeSet();
+    ind1.addAttribute(new Attribute("a"));
+    dep1.addAttribute(new Attribute("b"));
+    dep1.addAttribute(new Attribute("c"));
+    FunctionalDependency fd = new FunctionalDependency(ind1, dep1);
+    fds.add(fd);
+    
+    //af->e
+    AttributeSet ind2 = new AttributeSet();
+    AttributeSet dep2 = new AttributeSet();
+    ind2.addAttribute(new Attribute("a"));
+    ind2.addAttribute(new Attribute("f"));
+    dep2.addAttribute(new Attribute("e"));
+    fd = new FunctionalDependency(ind2, dep2);
+    fds.add(fd);
+
+    //b->ac
+    AttributeSet ind3 = new AttributeSet();
+    AttributeSet dep3 = new AttributeSet();
+    ind3.addAttribute(new Attribute("d"));
+    dep3.addAttribute(new Attribute("a"));
+    dep3.addAttribute(new Attribute("c"));
+    fd = new FunctionalDependency(ind3, dep3);
+    fds.add(fd);
+    
+    //run client code
+    Set<AttributeSet> bcnf = BCNF.decompose(attrs, fds);
+
+    System.out.println("PRINTING");
+    System.out.println(bcnf.toString());
+    //verify output
+  }
+ 
+  
+  
 }
