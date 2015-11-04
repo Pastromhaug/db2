@@ -22,9 +22,8 @@ public class Point {
      */
     public Point(int dim)
     {
-		assertTrue(dim > 0);
-		dimension = dim;
-		dimArray = new float[dim];
+	dimension = dim;
+	dimArray = new float[dim];
     }
 
     /**
@@ -36,8 +35,12 @@ public class Point {
      */
     public Point(String str)
     {
-        System.out.println("TODO");
-        System.exit(1);
+	String[] points = strLine.split(" ");
+	dimension = point.length;
+	dimArray = new float[dimension];
+	for (int i = 0; i < dimension; i++) {
+		dimArray[i] = Float.parseFloat(points[i]);
+	}
     }
 
     /**
@@ -45,13 +48,7 @@ public class Point {
      */
     public Point(Point other)
     {
-		
-		String s = "";
-		
-		for (int i = 0; i < other.getDimension(); i++) {
-			s += "
-		}
-
+        this(other.toString());
     }
 
     /**
@@ -60,9 +57,7 @@ public class Point {
      */
     public int getDimension()
     {
-        System.out.println("TODO");
-        System.exit(1);
-        return 0;
+        return dimension;
     }
 
     /**
@@ -74,9 +69,13 @@ public class Point {
      */
     public String toString()
     {
-        System.out.println("TODO");
-        System.exit(1);
-        return null;
+	if (dimension <= 0) {
+		return "";
+	}
+	String rep = "" + dimArray[0];
+	for (int i = 1; i < dimension; i++) {
+		rep += dimArray[i];
+	}
     }
 
     /**
@@ -87,8 +86,13 @@ public class Point {
      */
     public int compareTo(Object o)
     {   
-        System.out.println("TODO");
-        System.exit(1);
+	if (!(o instanceof Point)) {
+		return 0;
+	}
+	Point comparePoint = Point(o);
+	for (int i = 0; i < dimension; i++) {
+	
+	}
         return 0;
     }
 
