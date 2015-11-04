@@ -4,7 +4,7 @@ JAVAC=javac
 # Insert the path to the directory that CONTAINS the hadoop-2.7.1 folder with trailing /
 # Thus, if your Hadoop directory structure looks like "/opt/hadoop-2.7.1/bin/...", then set HADOOP_PREFIX
 # to "/opt/"
-HADOOP_PREFIX=/opt/
+HADOOP_PREFIX=/usr/share/
 CLASS_PATH=$(HADOOP_PREFIX)hadoop-2.7.1/share/hadoop/common/*:$(HADOOP_PREFIX)hadoop-2.7.1/share/hadoop/yarn/lib/*:$(HADOOP_PREFIX)hadoop-2.7.1/share/hadoop/mapreduce/lib/*:$(HADOOP_PREFIX)hadoop-2.7.1/share/hadoop/mapreduce/*:./
 JFLAGS = -classpath $(CLASS_PATH) #Xlint:deprecation
 # Point this to your JUnit 4 path

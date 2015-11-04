@@ -5,16 +5,16 @@ import org.apache.hadoop.io.*; // Writable
 
 /**
  * A Point is some ordered list of floats.
- * 
+ *
  * A Point implements WritableComparable so that Hadoop can serialize
  * and send Point objects across machines.
  *
  * NOTE: This implementation is NOT complete.  As mentioned above, you need
  * to implement WritableComparable at minimum.  Modify this class as you see fit.
  */
-public class Point {
-	int dimension;
-	float[] dimArray;
+public class Point implements WritableComparable{
+	public int dimension;
+	public float[] dimArray;
     /**
      * Construct a Point with the given dimensions [dim]. The coordinates should all be 0.
      * For example:
@@ -29,13 +29,13 @@ public class Point {
     /**
      * Construct a point from a properly formatted string (i.e. line from a test file)
      * @param str A string with coordinates that are space-delimited.
-     * For example: 
+     * For example:
      * Given the formatted string str="1 3 4 5"
      * Produce a Point {x_0 = 1, x_1 = 3, x_2 = 4, x_3 = 5}
      */
     public Point(String str)
     {
-	String[] points = strLine.split(" ");
+	String[] points = str.split(" ");
 	dimension = point.length;
 	dimArray = new float[dimension];
 	for (int i = 0; i < dimension; i++) {
@@ -74,7 +74,7 @@ public class Point {
 	}
 	String rep = "" + dimArray[0];
 	for (int i = 1; i < dimension; i++) {
-		rep += dimArray[i];
+		rep += " " + dimArray[i];
 	}
     }
 
@@ -85,13 +85,13 @@ public class Point {
      * Comparing two points of different dimensions results in undefined behavior.
      */
     public int compareTo(Object o)
-    {   
+    {
 	if (!(o instanceof Point)) {
 		return 0;
 	}
 	Point comparePoint = Point(o);
 	for (int i = 0; i < dimension; i++) {
-	
+
 	}
         return 0;
     }
@@ -101,9 +101,12 @@ public class Point {
      */
     public static final float distance(Point x, Point y)
     {
-        System.out.println("TODO");
-        System.exit(1);
-        return (float)0.0;
+        float total = 0;
+				for (int i = 0; i < x.dimension; i++){
+					float diff = x.dimArray[i] - y.dimArray[i]
+					total += diff*diff;
+				}
+				return total;
     }
 
     /**
@@ -111,9 +114,11 @@ public class Point {
      */
     public static final Point addPoints(Point x, Point y)
     {
-        System.out.println("TODO");
-        System.exit(1);
-        return null;
+        Point added = new Point(x.dimension);
+				for (int i = 0; i < x.dimension; i++){
+					added.dimArray[i] = x.dimArray[i] + y.dimArray[i];
+				}
+				return added;
     }
 
     /**
@@ -121,8 +126,12 @@ public class Point {
      */
     public static final Point multiplyScalar(Point x, float c)
     {
-        System.out.println("TODO");
-        System.exit(1);
-        return null;
+			Point scalar = new Point(x.dimension);
+			for (int i = 0; i < x.dimension; i++){
+				scalar.dimArray[i] = x.dimArray[i] * c;
+			}
+			return scalar;
     }
+
+		
 }
