@@ -36,7 +36,7 @@ public class Point implements WritableComparable{
     public Point(String str)
     {
 	String[] points = str.split(" ");
-	dimension = point.length;
+	dimension = points.length;
 	dimArray = new float[dimension];
 	for (int i = 0; i < dimension; i++) {
 		dimArray[i] = Float.parseFloat(points[i]);
@@ -76,6 +76,7 @@ public class Point implements WritableComparable{
 	for (int i = 1; i < dimension; i++) {
 		rep += " " + dimArray[i];
 	}
+	return rep;
     }
 
     /**
@@ -89,7 +90,7 @@ public class Point implements WritableComparable{
 	if (!(o instanceof Point)) {
 		return 0;
 	}
-	Point comparePoint = Point(o);
+	Point comparePoint =  (Point)o;
 	for (int i = 0; i < dimension; i++) {
 
 	}
@@ -103,7 +104,7 @@ public class Point implements WritableComparable{
     {
         float total = 0;
 				for (int i = 0; i < x.dimension; i++){
-					float diff = x.dimArray[i] - y.dimArray[i]
+					float diff = x.dimArray[i] - y.dimArray[i];
 					total += diff*diff;
 				}
 				return total;
@@ -133,5 +134,16 @@ public class Point implements WritableComparable{
 			return scalar;
     }
 
-		
+		public void write(DataOutput out) throws IOException {
+         return;
+       }
+
+   public void readFields(DataInput in) throws IOException {
+     return;
+   }
+
+   public static void read(DataInput in) throws IOException {
+     return;
+   }
+
 }
