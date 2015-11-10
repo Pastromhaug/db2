@@ -91,8 +91,16 @@ public class Point implements WritableComparable{
 		return 0;
 	}
 	Point comparePoint =  (Point)o;
+	if (comparePoint.getDimension() != dimension) {
+		return 0;
+	}
 	for (int i = 0; i < dimension; i++) {
-
+		if (comparePoint.dimArray[i] > dimArray[i]) {
+			return -1;
+		}
+		else if (comparePoint.dimArray[i] < dimArray[i]) {
+			return 1;
+		}
 	}
         return 0;
     }
@@ -103,11 +111,11 @@ public class Point implements WritableComparable{
     public static final float distance(Point x, Point y)
     {
         float total = 0;
-				for (int i = 0; i < x.dimension; i++){
-					float diff = x.dimArray[i] - y.dimArray[i];
-					total += diff*diff;
-				}
-				return total;
+	for (int i = 0; i < x.dimension; i++){
+		float diff = x.dimArray[i] - y.dimArray[i];
+		total += diff*diff;
+	}
+	return (float) Math.sqrt(total);
     }
 
     /**
@@ -116,10 +124,10 @@ public class Point implements WritableComparable{
     public static final Point addPoints(Point x, Point y)
     {
         Point added = new Point(x.dimension);
-				for (int i = 0; i < x.dimension; i++){
-					added.dimArray[i] = x.dimArray[i] + y.dimArray[i];
-				}
-				return added;
+	for (int i = 0; i < x.dimension; i++){
+		added.dimArray[i] = x.dimArray[i] + y.dimArray[i];
+	}
+	return added;
     }
 
     /**
@@ -127,16 +135,16 @@ public class Point implements WritableComparable{
      */
     public static final Point multiplyScalar(Point x, float c)
     {
-			Point scalar = new Point(x.dimension);
-			for (int i = 0; i < x.dimension; i++){
-				scalar.dimArray[i] = x.dimArray[i] * c;
-			}
-			return scalar;
+	Point scalar = new Point(x.dimension);
+	for (int i = 0; i < x.dimension; i++){
+		scalar.dimArray[i] = x.dimArray[i] * c;
+	}
+	return scalar;
     }
 
-		public void write(DataOutput out) throws IOException {
+    public void write(DataOutput out) throws IOException {
          return;
-       }
+    }
 
    public void readFields(DataInput in) throws IOException {
      return;
