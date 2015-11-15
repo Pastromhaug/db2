@@ -27,9 +27,18 @@ public class UpdateJobRunner
     public static Job createUpdateJob(int jobId, String inputDirectory, String outputDirectory)
         throws IOException
     {
-        System.out.println("TODO");
-        System.exit(1);
-        return null;
+	Job update_job = new Job(new Configuration(), "kmeans_update");
+        update_job.setJarByClass(UpdateJobRunner.class);
+        update_job.setMapperClass(PointToClusterMapper.class);
+        update_job.setMapOutputKeyClass(IntWritable.class);
+        update_job.setMapOutputValueClass(Point.class);
+        update__job.setReducerClass(ClusterToPointReducer.class);
+        update_job.setOutputKeyClass(IntWritable.class);
+        update_job.setOutputValueClass(Point.class);
+        FileInputFormat.addInputPath(update_job, new Path(inputDirectory));
+        FileOutputFormat.setOutputPath(update_job, new Path(outputDirectory));
+        update_job.setInputFormatClass(KeyValueTextInputFormat.class);
+        return update_job;
     }
 
     /**
